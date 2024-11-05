@@ -1,37 +1,28 @@
-// Create web servrt
+// Create web server
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
+const fs = require('fs');
+
+const app = express();
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-const port = 3000;
-const comments = require('./comments.js');
+
+// Read data from file
+let data = JSON.parse(fs.readFileSync('data.json'));
 
 // Get all comments
 app.get('/comments', (req, res) => {
-    res.json(comments.getComments());
+    res.send(data);
 });
 
-// Get comment by id
+// Get comments by id
 app.get('/comments/:id', (req, res) => {
-    res.json(comments.getComment(req.params.id));
+    const comment = data.find(c => c.id === parseInt(req.params.id));
+    if (!comment) return res.status(404).send('Comment not found');
+    res.send(comment);
 });
 
 // Create new comment
 app.post('/comments', (req, res) => {
-    res.json(comments.createComment(req.body));
-});
-
-// Update comment
-app.put('/comments/:id', (req, res) => {
-    res.json(comments.updateComment(req.params.id, req.body));
-});
-
-// Delete comment
-app.delete('/comments/:id', (req, res) => {
-    res.json(comments.deleteComment(req.params.id));
-});
-
-app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
-});
+    const comment = {
+        id: data.length + 1,
+        
